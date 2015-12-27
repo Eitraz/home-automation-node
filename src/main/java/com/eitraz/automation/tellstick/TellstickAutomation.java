@@ -9,32 +9,43 @@ import com.eitraz.tellstick.core.cluster.TellstickCluster;
 import com.eitraz.tellstick.core.device.DeviceException;
 import com.eitraz.tellstick.core.device.OnOffDevice;
 import com.eitraz.tellstick.core.rawdevice.RawDeviceEventListener;
-import com.hazelcast.core.Hazelcast;
+import com.eitraz.tellstick.core.rawdevice.events.RawDeviceEvent;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.HazelcastInstanceNotActiveException;
 
 import java.io.Serializable;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 
 public class TellstickAutomation implements Startable, Stopable, RawDeviceEventListener {
     private TellstickCluster tellstick;
-    private final HazelcastInstance hazelcast;
 
     private final Map<String, Serializable> deviceStatus;
+    private final Set<RawDeviceEvent> rawDeviceEventsCache;
 
-    private final BlockingQueue<Map<String, String>> rawEvents;
+    private final BlockingQueue<RawDeviceEvent> rawEvents;
     private final TimeoutHandler<String> rawEventTimeoutHandler = new TimeoutHandler<>(Duration.ONE_SECOND);
     private Thread rawEventsThread;
+    private final Set<RawDeviceEventListener> rawDeviceEventListeners = new CopyOnWriteArraySet<>();
 
-    public TellstickAutomation() {
-        hazelcast = Hazelcast.newHazelcastInstance();
-
+    public TellstickAutomation(HazelcastInstance hazelcast) {
         deviceStatus = hazelcast.getMap("tellstick.device.status");
         rawEvents = hazelcast.getQueue("tellstick.raw.events");
+        rawDeviceEventsCache = hazelcast.getSet("tellstick.raw.events.cache");
 
-        tellstick = LifeCycleInstance.register(new TellstickCluster());
+        tellstick = LifeCycleInstance.register(new TellstickCluster(hazelcast));
+    }
+
+    public void addRawDeviceEventListener(RawDeviceEventListener listener) {
+        rawDeviceEventListeners.add(listener);
+    }
+
+    public void removeRawDeviceEventListener(RawDeviceEventListener listener) {
+        rawDeviceEventListeners.remove(listener);
     }
 
     @Override
@@ -44,18 +55,18 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
         rawEventsThread = new Thread("rawEventsThread") {
             @Override
             public void run() {
-                while (rawEventsThread != null && rawEventsThread == this) {
+                while (rawEventsThread == this) {
                     try {
-                        Map<String, String> parameters = rawEvents.poll(1000, TimeUnit.SECONDS);
-                        if (parameters != null) {
-                            TreeMap<String, String> sortedMap = new TreeMap<>(parameters);
-
+                        RawDeviceEvent event = rawEvents.poll(1000, TimeUnit.SECONDS);
+                        if (event != null) {
                             // Don't fire event to often
-                            if (rawEventTimeoutHandler.isReady(sortedMap.toString()))
-                                handleRawDeviceEvent(sortedMap);
+                            if (rawEventTimeoutHandler.isReady(event.toString()))
+                                handleRawDeviceEvent(event);
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
+                    } catch (HazelcastInstanceNotActiveException ignored) {
+                        break;
                     }
                 }
             }
@@ -68,20 +79,25 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
         tellstick.getTellstick().getRawDeviceHandler().removeRawDeviceEventListener(this);
 
         if (rawEventsThread != null) {
+            Thread previousRawEventsThread = rawEventsThread;
             rawEventsThread = null;
+
+            try {
+                previousRawEventsThread.join(5000);
+            } catch (InterruptedException ignored) {}
         }
     }
 
     @Override
-    public void rawDeviceEvent(Map<String, String> parameters) {
-        rawEvents.offer(parameters);
+    public void rawDeviceEvent(RawDeviceEvent event) {
+        rawEvents.offer(event);
     }
 
     /**
-     * @param parameters raw event parameters
+     * @param event raw event
      */
-    private void handleRawDeviceEvent(Map<String, String> parameters) {
-        // TODO Run logic
+    private void handleRawDeviceEvent(RawDeviceEvent event) {
+        rawDeviceEventListeners.forEach(l -> l.rawDeviceEvent(event));
     }
 
     public void turnOn(String device) {
@@ -110,4 +126,18 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
         }
     }
 
+    public static boolean hasAllParameters(RawDeviceEvent event, Map<String, String> parameters) {
+        for (Map.Entry<String, String> param : parameters.entrySet()) {
+            if (!param.getValue().equalsIgnoreCase(event.get(param.getKey())))
+                return false;
+        }
+        return true;
+    }
+
+    public RawDeviceEvent getRawDeviceEvent(Map<String, String> parameters) {
+        Optional<RawDeviceEvent> first = rawDeviceEventsCache.stream()
+                .filter(e -> hasAllParameters(e, parameters))
+                .findFirst();
+        return first.orElse(null);
+    }
 }
