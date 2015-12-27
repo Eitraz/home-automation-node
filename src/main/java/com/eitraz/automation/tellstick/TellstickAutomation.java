@@ -97,6 +97,7 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
      * @param event raw event
      */
     private void handleRawDeviceEvent(RawDeviceEvent event) {
+        rawDeviceEventsCache.add(event);
         rawDeviceEventListeners.forEach(l -> l.rawDeviceEvent(event));
     }
 
