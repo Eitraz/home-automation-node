@@ -10,10 +10,10 @@ import com.eitraz.tellstick.core.device.DeviceException;
 import com.eitraz.tellstick.core.device.OnOffDevice;
 import com.eitraz.tellstick.core.rawdevice.RawDeviceEventListener;
 import com.eitraz.tellstick.core.rawdevice.events.RawDeviceEvent;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.HazelcastInstanceNotActiveException;
+import com.hazelcast.core.*;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -21,11 +21,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 
-public class TellstickAutomation implements Startable, Stopable, RawDeviceEventListener {
+public class TellstickAutomation implements Startable, Stopable, RawDeviceEventListener, MessageListener<RawDeviceEvent> {
     private TellstickCluster tellstick;
 
     private final Map<String, Serializable> deviceStatus;
+
+    private final ITopic<RawDeviceEvent> rawDeviceEventsCacheTopic;
     private final Set<RawDeviceEvent> rawDeviceEventsCache;
+    private String rawDeviceEventsCacheListenerId;
 
     private final BlockingQueue<RawDeviceEvent> rawEvents;
     private final TimeoutHandler<String> rawEventTimeoutHandler = new TimeoutHandler<>(Duration.ONE_SECOND);
@@ -35,7 +38,9 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
     public TellstickAutomation(HazelcastInstance hazelcast) {
         deviceStatus = hazelcast.getMap("tellstick.device.status");
         rawEvents = hazelcast.getQueue("tellstick.raw.events");
-        rawDeviceEventsCache = hazelcast.getSet("tellstick.raw.events.cache");
+        rawDeviceEventsCacheTopic = hazelcast.getTopic("tellstick.raw.events.cachePublisher");
+
+        rawDeviceEventsCache = new HashSet<>();
 
         tellstick = LifeCycleInstance.register(new TellstickCluster(hazelcast));
     }
@@ -72,11 +77,18 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
             }
         };
         rawEventsThread.start();
+
+        rawDeviceEventsCacheListenerId = rawDeviceEventsCacheTopic.addMessageListener(this);
     }
 
     @Override
     public void doStop() {
         tellstick.getTellstick().getRawDeviceHandler().removeRawDeviceEventListener(this);
+
+        if (rawDeviceEventsCacheListenerId != null) {
+            rawDeviceEventsCacheTopic.removeMessageListener(rawDeviceEventsCacheListenerId);
+            rawDeviceEventsCacheListenerId = null;
+        }
 
         if (rawEventsThread != null) {
             Thread previousRawEventsThread = rawEventsThread;
@@ -84,12 +96,14 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
 
             try {
                 previousRawEventsThread.join(5000);
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException ignored) {
+            }
         }
     }
 
     @Override
     public void rawDeviceEvent(RawDeviceEvent event) {
+        rawDeviceEventsCacheTopic.publish(event);
         rawEvents.offer(event);
     }
 
@@ -97,7 +111,6 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
      * @param event raw event
      */
     private void handleRawDeviceEvent(RawDeviceEvent event) {
-        rawDeviceEventsCache.add(event);
         rawDeviceEventListeners.forEach(l -> l.rawDeviceEvent(event));
     }
 
@@ -140,5 +153,10 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
                 .filter(e -> hasAllParameters(e, parameters))
                 .findFirst();
         return first.orElse(null);
+    }
+
+    @Override
+    public void onMessage(Message<RawDeviceEvent> message) {
+        rawDeviceEventsCache.add(message.getMessageObject());
     }
 }

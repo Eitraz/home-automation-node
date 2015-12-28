@@ -12,6 +12,6 @@ public class AutomationApplicationTest {
 
     @Test
     public void testTest() throws Exception {
-        Thread.sleep(10000);
+        Thread.sleep(30000);
     }
 }
