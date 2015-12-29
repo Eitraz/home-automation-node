@@ -7,26 +7,18 @@ import com.eitraz.tellstick.core.rawdevice.RawDeviceEventListener;
 import com.eitraz.tellstick.core.rawdevice.events.RawDeviceEvent;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IExecutorService;
-import com.hazelcast.core.Member;
 import io.dropwizard.Application;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
-import java.io.Serializable;
-
 public class AutomationApplication extends Application<AutomationConfiguration> implements RawDeviceEventListener {
     private HazelcastInstance hazelcast;
     private TellstickAutomation tellstick;
-    private static Evaluator evaluator;
+    private Evaluator evaluator;
 
     @Override
     public void run(final AutomationConfiguration automationConfiguration, Environment environment) throws Exception {
-        if (tellstick != null || evaluator != null) {
-            throw new RuntimeException("Already running!");
-        }
-
         // Hazelcast
         this.hazelcast = Hazelcast.newHazelcastInstance();
         hazelcast.getCluster().getLocalMember().setIntAttribute("priority", automationConfiguration.getPriority());
