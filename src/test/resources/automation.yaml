@@ -1,0 +1,84 @@
+logging:
+  level: INFO
+
+  appenders:
+    - type: console
+
+tellstick:
+  devices:
+    - name: Office
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 9512972
+        unit: 1
+
+    - name: Livingroom
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 52331682
+        unit: 1
+
+    - name: Kitchen
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 15559218
+        unit: 1
+
+    - name: Entrance
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 7966963
+        unit: 1
+
+    - name: Stair
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 58636817
+        unit: 1
+
+    - name: Hallway
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 51913961
+        unit: 1
+
+    - name: Bedroom
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 25911390
+        unit: 1
+
+    - name: Playroom
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 23837562
+        unit: 1
+
+    - name: Kidsroom
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 52351462
+        unit: 1
+
+    - name: Guestroom
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 16756154
+        unit: 1
+
+    - name: Garden
+      model: selflearning-switch
+      protocol: arctech
+      parameters:
+        house: 27116495
+        unit: 1

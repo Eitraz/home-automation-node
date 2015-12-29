@@ -1,6 +1,8 @@
 package com.eitraz.automation;
 
+import com.eitraz.automation.configuration.AutomationConfiguration;
 import com.eitraz.automation.tellstick.TellstickAutomation;
+import com.eitraz.automation.tellstick.TellstickConfigurer;
 import com.eitraz.tellstick.core.rawdevice.RawDeviceEventListener;
 import com.eitraz.tellstick.core.rawdevice.events.RawDeviceEvent;
 import com.hazelcast.core.Hazelcast;
@@ -15,7 +17,7 @@ public class AutomationApplication extends Application<AutomationConfiguration> 
     private static TellstickAutomation tellstick;
 
     @Override
-    public void run(AutomationConfiguration automationConfiguration, Environment environment) throws Exception {
+    public void run(final AutomationConfiguration automationConfiguration, Environment environment) throws Exception {
         // Hazelcast
         this.hazelcast = Hazelcast.newHazelcastInstance();
 
@@ -28,6 +30,9 @@ public class AutomationApplication extends Application<AutomationConfiguration> 
             @Override
             public void start() throws Exception {
                 LifeCycleInstance.get().start();
+
+                // Setup tellstick - TODO: Replace this with Hazelcast configured devices
+                TellstickConfigurer.setup(tellstick.getTellstick(), automationConfiguration.getTellstick());
             }
 
             @Override

@@ -45,6 +45,10 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
         tellstick = LifeCycleInstance.register(new TellstickCluster(hazelcast));
     }
 
+    public TellstickCluster getTellstick() {
+        return tellstick;
+    }
+
     public void addRawDeviceEventListener(RawDeviceEventListener listener) {
         rawDeviceEventListeners.add(listener);
     }

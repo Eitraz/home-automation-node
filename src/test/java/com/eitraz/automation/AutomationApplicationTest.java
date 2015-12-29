@@ -1,5 +1,6 @@
 package com.eitraz.automation;
 
+import com.eitraz.automation.configuration.AutomationConfiguration;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
 import org.junit.ClassRule;
@@ -12,6 +13,11 @@ public class AutomationApplicationTest {
 
     @Test
     public void testTest() throws Exception {
-        Thread.sleep(30000);
+//        Thread.sleep(30000);
+
+        System.out.println("================================================================================");
+        System.out.println("Tellstick: " + RULE.getConfiguration().getTellstick());
+
+        RULE.getConfiguration().getTellstick().getDevices().forEach(System.out::println);
     }
 }
