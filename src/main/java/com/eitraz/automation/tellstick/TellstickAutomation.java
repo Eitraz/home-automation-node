@@ -10,16 +10,17 @@ import com.eitraz.tellstick.core.device.DeviceException;
 import com.eitraz.tellstick.core.device.OnOffDevice;
 import com.eitraz.tellstick.core.rawdevice.RawDeviceEventListener;
 import com.eitraz.tellstick.core.rawdevice.events.RawDeviceEvent;
-import com.hazelcast.core.*;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ITopic;
+import com.hazelcast.core.Message;
+import com.hazelcast.core.MessageListener;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.TimeUnit;
 
 public class TellstickAutomation implements Startable, Stopable, RawDeviceEventListener, MessageListener<RawDeviceEvent> {
     private TellstickCluster tellstick;
@@ -30,15 +31,12 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
     private final Set<RawDeviceEvent> rawDeviceEventsCache;
     private String rawDeviceEventsCacheListenerId;
 
-    private final BlockingQueue<RawDeviceEvent> rawEvents;
     private final TimeoutHandler<String> rawEventTimeoutHandler = new TimeoutHandler<>(Duration.ONE_SECOND);
-    private Thread rawEventsThread;
     private final Set<RawDeviceEventListener> rawDeviceEventListeners = new CopyOnWriteArraySet<>();
 
     public TellstickAutomation(HazelcastInstance hazelcast) {
         deviceStatus = hazelcast.getMap("tellstick.device.status");
-        rawEvents = hazelcast.getQueue("tellstick.raw.events");
-        rawDeviceEventsCacheTopic = hazelcast.getTopic("tellstick.raw.events.cachePublisher");
+        rawDeviceEventsCacheTopic = hazelcast.getReliableTopic("tellstick.raw.events.cachePublisher");
 
         rawDeviceEventsCache = new HashSet<>();
 
@@ -60,55 +58,21 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
     @Override
     public void doStart() {
         tellstick.getTellstick().getRawDeviceHandler().addRawDeviceEventListener(this);
-
-        rawEventsThread = new Thread("rawEventsThread") {
-            @Override
-            public void run() {
-                while (rawEventsThread == this) {
-                    try {
-                        RawDeviceEvent event = rawEvents.poll(1000, TimeUnit.SECONDS);
-                        if (event != null) {
-                            // Don't fire event to often
-                            if (rawEventTimeoutHandler.isReady(event.toString()))
-                                handleRawDeviceEvent(event);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (HazelcastInstanceNotActiveException ignored) {
-                        break;
-                    }
-                }
-            }
-        };
-        rawEventsThread.start();
-
         rawDeviceEventsCacheListenerId = rawDeviceEventsCacheTopic.addMessageListener(this);
     }
 
     @Override
     public void doStop() {
-        tellstick.getTellstick().getRawDeviceHandler().removeRawDeviceEventListener(this);
-
         if (rawDeviceEventsCacheListenerId != null) {
             rawDeviceEventsCacheTopic.removeMessageListener(rawDeviceEventsCacheListenerId);
             rawDeviceEventsCacheListenerId = null;
         }
-
-        if (rawEventsThread != null) {
-            Thread previousRawEventsThread = rawEventsThread;
-            rawEventsThread = null;
-
-            try {
-                previousRawEventsThread.join(5000);
-            } catch (InterruptedException ignored) {
-            }
-        }
+        tellstick.getTellstick().getRawDeviceHandler().removeRawDeviceEventListener(this);
     }
 
     @Override
     public void rawDeviceEvent(RawDeviceEvent event) {
         rawDeviceEventsCacheTopic.publish(event);
-        rawEvents.offer(event);
     }
 
     /**
@@ -161,6 +125,12 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
 
     @Override
     public void onMessage(Message<RawDeviceEvent> message) {
-        rawDeviceEventsCache.add(message.getMessageObject());
+        RawDeviceEvent event = message.getMessageObject();
+        rawDeviceEventsCache.add(event);
+
+        // Don't fire event to often
+        if (rawEventTimeoutHandler.isReady(event.toString())) {
+            handleRawDeviceEvent(event);
+        }
     }
 }
