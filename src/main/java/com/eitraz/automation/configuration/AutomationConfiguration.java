@@ -10,17 +10,30 @@ public class AutomationConfiguration extends Configuration {
     @Valid
     private TellstickConfiguration tellstick;
 
+    @Valid
+    private ScriptsConfiguration scripts;
+
     @NotNull
     private Integer priority;
 
-    @JsonProperty("tellstick")
+    @JsonProperty
     public TellstickConfiguration getTellstick() {
         return tellstick;
     }
 
-    @JsonProperty("tellstick")
+    @JsonProperty
     public void setTellstick(TellstickConfiguration tellstick) {
         this.tellstick = tellstick;
+    }
+
+    @JsonProperty
+    public ScriptsConfiguration getScripts() {
+        return scripts;
+    }
+
+    @JsonProperty
+    public void setScripts(ScriptsConfiguration scripts) {
+        this.scripts = scripts;
     }
 
     @JsonProperty

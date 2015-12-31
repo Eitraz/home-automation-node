@@ -6,6 +6,9 @@ logging:
   appenders:
     - type: console
 
+scripts:
+  path: ./src/test/resources/scripts
+
 tellstick:
   devices:
     - name: Office

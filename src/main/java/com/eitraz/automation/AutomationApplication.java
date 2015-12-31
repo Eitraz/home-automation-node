@@ -1,6 +1,8 @@
 package com.eitraz.automation;
 
 import com.eitraz.automation.configuration.AutomationConfiguration;
+import com.eitraz.automation.evaulation.Evaluator;
+import com.eitraz.automation.scripts.FileScriptLoader;
 import com.eitraz.automation.tellstick.TellstickAutomation;
 import com.eitraz.automation.tellstick.TellstickConfigurer;
 import com.eitraz.tellstick.core.rawdevice.RawDeviceEventListener;
@@ -13,6 +15,8 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 public class AutomationApplication extends Application<AutomationConfiguration> implements RawDeviceEventListener {
+    public static final String HAZELCAST_MEMBER_PRIORITY = "priority";
+
     private HazelcastInstance hazelcast;
     private TellstickAutomation tellstick;
     private Evaluator evaluator;
@@ -21,13 +25,16 @@ public class AutomationApplication extends Application<AutomationConfiguration> 
     public void run(final AutomationConfiguration automationConfiguration, Environment environment) throws Exception {
         // Hazelcast
         this.hazelcast = Hazelcast.newHazelcastInstance();
-        hazelcast.getCluster().getLocalMember().setIntAttribute("priority", automationConfiguration.getPriority());
+        hazelcast.getCluster().getLocalMember().setIntAttribute(HAZELCAST_MEMBER_PRIORITY, automationConfiguration.getPriority());
 
         // Tellstick
         this.tellstick = LifeCycleInstance.register(new TellstickAutomation(hazelcast));
 
         // Evaluator
         evaluator = LifeCycleInstance.register(new Evaluator(hazelcast, tellstick));
+
+        // Load scripts
+        new FileScriptLoader(automationConfiguration.getScripts().getPath()).populateHazelcast(hazelcast);
 
         // Life cycle manager
         environment.lifecycle().manage(new Managed() {
