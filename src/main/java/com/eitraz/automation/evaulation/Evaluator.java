@@ -1,6 +1,8 @@
 package com.eitraz.automation.evaulation;
 
 import com.eitraz.automation.AutomationApplication;
+import com.eitraz.automation.LifeCycleInstance;
+import com.eitraz.automation.scripts.ScriptRunner;
 import com.eitraz.automation.tellstick.TellstickAutomation;
 import com.eitraz.library.lifecycle.Startable;
 import com.eitraz.library.lifecycle.Stopable;
@@ -23,6 +25,8 @@ public class Evaluator implements Startable, Stopable {
     private Thread baseEvaulateIntervalThread;
     private static Evaluator instance;
 
+    private final ScriptRunner scriptRunner;
+
     public Evaluator(HazelcastInstance hazelcast, TellstickAutomation tellstick) {
         // ... Well
         if (instance != null)
@@ -36,6 +40,8 @@ public class Evaluator implements Startable, Stopable {
 
         evaluateExecutor = hazelcast.getExecutorService("evaluate-executor");
         hazelcast.getConfig().getExecutorConfig("evaluate-executor").setPoolSize(1);
+
+        scriptRunner = LifeCycleInstance.register(new ScriptRunner(hazelcast));
     }
 
     public TellstickAutomation getTellstick() {
@@ -62,7 +68,7 @@ public class Evaluator implements Startable, Stopable {
     }
 
     private void doEvaluation() {
-
+        scriptRunner.runScripts(getTellstick());
     }
 
     @Override

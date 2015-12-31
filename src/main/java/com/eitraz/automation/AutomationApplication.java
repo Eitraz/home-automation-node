@@ -30,11 +30,11 @@ public class AutomationApplication extends Application<AutomationConfiguration> 
         // Tellstick
         this.tellstick = LifeCycleInstance.register(new TellstickAutomation(hazelcast));
 
-        // Evaluator
-        evaluator = LifeCycleInstance.register(new Evaluator(hazelcast, tellstick));
-
         // Load scripts
         new FileScriptLoader(automationConfiguration.getScripts().getPath()).populateHazelcast(hazelcast);
+
+        // Evaluator
+        evaluator = LifeCycleInstance.register(new Evaluator(hazelcast, tellstick));
 
         // Life cycle manager
         environment.lifecycle().manage(new Managed() {
