@@ -11,6 +11,7 @@ import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.MapClearedListener;
 import groovy.lang.Binding;
+import groovy.lang.GroovyRuntimeException;
 import groovy.lang.GroovyShell;
 import org.apache.log4j.Logger;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -63,16 +64,25 @@ public class ScriptRunner implements Startable, Stopable,
             BufferedReader reader = new BufferedReader(new StringReader(s.getScript()));
             String line;
             try {
+                int emptyLineCounter = 0;
                 while ((line = reader.readLine()) != null) {
                     // Skip
                     if (line.startsWith("package")) {
+                        emptyLineCounter++;
                     }
                     // Import
                     else if (line.startsWith("import")) {
+                        emptyLineCounter++;
                         imports.add(line);
+                    }
+                    // Empty line
+                    else if (line.isEmpty()) {
+                        if (emptyLineCounter++ == 0)
+                            scriptBuilder.append("\n");
                     }
                     // Script line
                     else {
+                        emptyLineCounter = 0;
                         scriptBuilder.append(line).append("\n");
                     }
                 }
@@ -80,7 +90,7 @@ public class ScriptRunner implements Startable, Stopable,
                 throw new RuntimeException("Unable to build script", e);
             }
 
-            builder.append(String.format("// Script: %s\n%s\n\n", s.getName(), scriptBuilder.toString()));
+            builder.append(String.format("// --------------------\n// Script: %s\n// --------------------\n%s\n\n", s.getName(), scriptBuilder.toString().trim()));
         }
 
         StringBuilder importsStringBuilder = new StringBuilder();
@@ -116,8 +126,8 @@ public class ScriptRunner implements Startable, Stopable,
         GroovyShell shell = new GroovyShell(getClass().getClassLoader(), binding, configuration);
         try {
             shell.evaluate(script);
-        } catch (CompilationFailedException e) {
-            logger.error(e);
+        } catch (Throwable e) {
+            logger.error("Script exception", e);
         }
 
         logger.info(String.format("Script output:\n%s", output.toString()));
