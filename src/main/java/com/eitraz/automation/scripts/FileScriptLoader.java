@@ -1,7 +1,6 @@
 package com.eitraz.automation.scripts;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.Validate;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,9 +16,6 @@ public class FileScriptLoader extends ScriptLoader {
 
     public FileScriptLoader(File directory) {
         this.directory = directory;
-
-        Validate.isTrue(directory.exists() && directory.isDirectory(),
-                String.format("Script directory '%s' does not exist", directory.getAbsolutePath()));
     }
 
     @Override
@@ -32,24 +28,26 @@ public class FileScriptLoader extends ScriptLoader {
 
         List<Script> scripts = new ArrayList<>();
 
-        for (File file : files) {
-            int priority;
-            String name;
+        if (files != null) {
+            for (File file : files) {
+                int priority;
+                String name;
 
-            Matcher matcher = PRIORITY_PATTERN.matcher(file.getName());
-            if (matcher.matches()) {
-                priority = Integer.parseInt(matcher.group(1));
-                name = matcher.group(2);
-            }
-            // Invalid filename
-            else {
-                throw new RuntimeException("Invalid script file name, should be of style priority.name.groovy (for example 10.example.groovy)");
-            }
+                Matcher matcher = PRIORITY_PATTERN.matcher(file.getName());
+                if (matcher.matches()) {
+                    priority = Integer.parseInt(matcher.group(1));
+                    name = matcher.group(2);
+                }
+                // Invalid filename
+                else {
+                    throw new RuntimeException("Invalid script file name, should be of style priority.name.groovy (for example 10.example.groovy)");
+                }
 
-            try {
-                scripts.add(new Script(priority, name, FileUtils.readFileToString(file)));
-            } catch (IOException e) {
-                throw new RuntimeException("Unable to load script " + file.getAbsolutePath());
+                try {
+                    scripts.add(new Script(priority, name, FileUtils.readFileToString(file)));
+                } catch (IOException e) {
+                    throw new RuntimeException("Unable to load script " + file.getAbsolutePath());
+                }
             }
         }
 

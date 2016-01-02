@@ -23,6 +23,7 @@ public class Evaluator implements Startable, Stopable {
     private IExecutorService evaluateExecutor;
 
     private Thread baseEvaulateIntervalThread;
+    private ILock baseEvaluateIntervalLock;
     private static Evaluator instance;
 
     private final ScriptRunner scriptRunner;
@@ -37,11 +38,12 @@ public class Evaluator implements Startable, Stopable {
         this.tellstick = tellstick;
 
         evaluateLock = hazelcast.getLock("evaluate-lock");
+        baseEvaluateIntervalLock = hazelcast.getLock("base-evaluate-interval-lock");
 
         evaluateExecutor = hazelcast.getExecutorService("evaluate-executor");
         hazelcast.getConfig().getExecutorConfig("evaluate-executor").setPoolSize(1);
 
-        scriptRunner = LifeCycleInstance.register(new ScriptRunner(hazelcast));
+        scriptRunner = LifeCycleInstance.register(new ScriptRunner(hazelcast, tellstick));
     }
 
     public TellstickAutomation getTellstick() {
@@ -68,7 +70,7 @@ public class Evaluator implements Startable, Stopable {
     }
 
     private void doEvaluation() {
-        scriptRunner.runScripts(getTellstick());
+        scriptRunner.runScripts();
     }
 
     @Override
@@ -76,19 +78,24 @@ public class Evaluator implements Startable, Stopable {
         baseEvaulateIntervalThread = new Thread("baseEvaulateIntervalThread") {
             @Override
             public void run() {
-                long previousTime = 0;
-                while (baseEvaulateIntervalThread == this) {
-                    long time = System.currentTimeMillis();
+                long previousTime = System.currentTimeMillis();
+                baseEvaluateIntervalLock.lock();
+                try {
+                    while (baseEvaulateIntervalThread == this) {
+                        long time = System.currentTimeMillis();
 
-                    if (time - previousTime > 1000 * 30) {
-                        requestEvaluation();
-                        previousTime = time;
-                    }
+                        if (time - previousTime > 1000 * 30) {
+                            requestEvaluation();
+                            previousTime = time;
+                        }
 
-                    try {
-                        Thread.sleep(2500);
-                    } catch (InterruptedException ignored) {
+                        try {
+                            Thread.sleep(2500);
+                        } catch (InterruptedException ignored) {
+                        }
                     }
+                } finally {
+                    baseEvaluateIntervalLock.unlock();
                 }
             }
         };

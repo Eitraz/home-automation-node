@@ -16,13 +16,16 @@ import org.apache.log4j.Logger;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ScriptRunner implements Startable, Stopable,
         EntryRemovedListener<String, Script>, EntryAddedListener<String, Script>, MapClearedListener {
     protected static final Logger logger = Logger.getLogger(ScriptRunner.class);
+
+    private TellstickAutomation tellstick;
 
     private final IMap<String, Script> hazelcastScripts;
     private String hazelcastScriptsListenerId;
@@ -30,8 +33,11 @@ public class ScriptRunner implements Startable, Stopable,
     private boolean scriptsUpdated = true;
     private String cachedScript;
 
-    public ScriptRunner(HazelcastInstance hazelcast) {
+    private LocalCache localCache = new LocalCache();
+
+    public ScriptRunner(HazelcastInstance hazelcast, TellstickAutomation tellstick) {
         hazelcastScripts = hazelcast.getMap("automation.scripts");
+        this.tellstick = tellstick;
     }
 
     private String getScript() {
@@ -48,23 +54,49 @@ public class ScriptRunner implements Startable, Stopable,
 
         logger.info(String.format("Rebuilding script for %d scripts", scripts.size()));
 
+        Set<String> imports = new HashSet<>();
+
         StringBuilder builder = new StringBuilder();
         for (Script s : scripts) {
-            builder.append(String.format("// Script: %s\n%s\n", s.getName(), s.getScript()));
+            StringBuilder scriptBuilder = new StringBuilder();
+
+            BufferedReader reader = new BufferedReader(new StringReader(s.getScript()));
+            String line;
+            try {
+                while ((line = reader.readLine()) != null) {
+                    // Skip
+                    if (line.startsWith("package")) {
+                    }
+                    // Import
+                    else if (line.startsWith("import")) {
+                        imports.add(line);
+                    }
+                    // Script line
+                    else {
+                        scriptBuilder.append(line).append("\n");
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to build script", e);
+            }
+
+            builder.append(String.format("// Script: %s\n%s\n\n", s.getName(), scriptBuilder.toString()));
         }
 
-        String script = builder.toString();
+        StringBuilder importsStringBuilder = new StringBuilder();
+        imports.forEach(l -> importsStringBuilder.append(l).append("\n"));
+        importsStringBuilder.append("\n");
+
+        String script = importsStringBuilder.append(builder.toString()).toString();
 
         if (logger.isDebugEnabled()) {
-            logger.debug("SCRIPT START >>>");
-            logger.debug(script);
-            logger.debug("<<< END");
+            logger.debug(String.format("Script:\n%s", script));
         }
 
         return script;
     }
 
-    public void runScripts(TellstickAutomation tellstick) {
+    public void runScripts() {
         String script = getScript();
 
         // Configuration
@@ -78,6 +110,7 @@ public class ScriptRunner implements Startable, Stopable,
         binding.setProperty("out", new PrintWriter(output));
 
         binding.setVariable("tellstick", tellstick);
+        binding.setVariable("cache", localCache);
 
         // Evaluate
         GroovyShell shell = new GroovyShell(getClass().getClassLoader(), binding, configuration);
@@ -87,7 +120,7 @@ public class ScriptRunner implements Startable, Stopable,
             logger.error(e);
         }
 
-        logger.info(String.format("Script output:\t%s", output.toString()));
+        logger.info(String.format("Script output:\n%s", output.toString()));
     }
 
     @Override
