@@ -18,7 +18,7 @@ tellstick:
         house: 9512972
         unit: 1
 
-    - name: Livingroom
+    - name: LivingRoom
       model: selflearning-switch
       protocol: arctech
       parameters:

@@ -19,31 +19,31 @@ def markRawDeviceAsRead = { String name, RawDeviceHelper device ->
 
 // ===== Motion detectors =====
 
-RawDeviceHelper livingroomMotion = new RawDeviceHelper(tellstick)
+RawDeviceHelper livingRoomMotionSensor = new RawDeviceHelper(tellstick)
         .with(RawDeviceEvent.PROTOCOL, "arctech")
         .with(RawDeviceEvent.MODEL, "codeswitch")
         .with(RawDeviceEvent.HOUSE, "E");
 
-RawDeviceHelper entranceMotion = new RawDeviceHelper(tellstick)
+RawDeviceHelper entranceMotionSensor = new RawDeviceHelper(tellstick)
         .with(RawDeviceEvent.PROTOCOL, "arctech")
         .with(RawDeviceEvent.MODEL, "codeswitch")
         .with(RawDeviceEvent.HOUSE, "M");
 
-RawDeviceHelper kitchenMotion = new RawDeviceHelper(tellstick)
+RawDeviceHelper kitchenMotionSensor = new RawDeviceHelper(tellstick)
         .with(RawDeviceEvent.PROTOCOL, "arctech")
         .with(RawDeviceEvent.MODEL, "selflearning")
         .with(RawDeviceEvent.HOUSE, "8040222")
         .with(RawDeviceEvent.UNIT, "10")
         .with(RawDeviceEvent.METHOD, "turnon");
 
-RawDeviceHelper upstairsHallwayMotion = new RawDeviceHelper(tellstick)
+RawDeviceHelper upstairsHallwayMotionSensor = new RawDeviceHelper(tellstick)
         .with(RawDeviceEvent.PROTOCOL, "arctech")
         .with(RawDeviceEvent.MODEL, "selflearning")
         .with(RawDeviceEvent.HOUSE, "8090342")
         .with(RawDeviceEvent.UNIT, "10")
         .with(RawDeviceEvent.METHOD, "turnon");
 
-RawDeviceHelper upstairsMotion = new RawDeviceHelper(tellstick)
+RawDeviceHelper upstairsMotionSensor = new RawDeviceHelper(tellstick)
         .with(RawDeviceEvent.PROTOCOL, "arctech")
         .with(RawDeviceEvent.MODEL, "selflearning")
         .with(RawDeviceEvent.HOUSE, "8042158")
