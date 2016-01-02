@@ -15,9 +15,6 @@ public abstract class ScriptLoader {
 
         if (hazelcastScripts.isEmpty()) {
             logger.info("No scripts active!");
-        } else {
-            logger.info("Active scripts:");
-            hazelcastScripts.values().forEach(s -> logger.info(String.format("\t%s, priority: %d%n", s.getName(), s.getPriority())));
         }
     }
 

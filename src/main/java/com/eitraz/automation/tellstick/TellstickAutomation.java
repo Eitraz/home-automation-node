@@ -117,6 +117,12 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
     }
 
     public RawDeviceEvent getRawDeviceEvent(Map<String, String> parameters) {
+//
+//        System.out.println("===== EVENTS =====");
+//        rawDeviceEventsCache.forEach(System.out::println);
+//        System.out.println("==================");
+//
+
         Optional<RawDeviceEvent> first = rawDeviceEventsCache.stream()
                 .filter(e -> hasAllParameters(e, parameters))
                 .findFirst();

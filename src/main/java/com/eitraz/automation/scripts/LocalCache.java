@@ -21,4 +21,8 @@ public class LocalCache {
     public <T> T get(String key) {
         return (T) cache.get(key);
     }
+
+    public <T> void set(String key, T value) {
+        cache.put(key, value);
+    }
 }
