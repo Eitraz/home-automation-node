@@ -25,8 +25,8 @@ def handleTemperatureAndHumiditySensor = { String name, RawDeviceHelper sensor -
     }
 }
 
-handleTemperatureAndHumiditySensor("outside", upstairsTemperatureAndHumiditySensor);
+handleTemperatureAndHumiditySensor("upstairs", upstairsTemperatureAndHumiditySensor);
 handleTemperatureAndHumiditySensor("livingRoom", livingTemperatureAndHumidityRoomSensor);
-handleTemperatureAndHumiditySensor("upstairs", outsideTemperatureAndHumiditySensor);
+handleTemperatureAndHumiditySensor("outside", outsideTemperatureAndHumiditySensor);
 handleTemperatureAndHumiditySensor("basement", basementTemperatureAndHumiditySensor);
 //handleTemperatureAndHumiditySensor("extra", extraTemperatureAndHumiditySensor);

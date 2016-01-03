@@ -84,7 +84,7 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
 
     public void turnOn(String device) {
         // Already on
-        if (Boolean.TRUE.equals(deviceStatus.get("device")))
+        if (Boolean.TRUE.equals(deviceStatus.get(device)))
             return;
 
         deviceStatus.put(device, Boolean.TRUE);
@@ -97,7 +97,7 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
 
     public void turnOff(String device) {
         // Already off
-        if (Boolean.FALSE.equals(deviceStatus.get("device")))
+        if (Boolean.FALSE.equals(deviceStatus.get(device)))
             return;
 
         deviceStatus.put(device, Boolean.FALSE);
@@ -132,6 +132,7 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
     @Override
     public void onMessage(Message<RawDeviceEvent> message) {
         RawDeviceEvent event = message.getMessageObject();
+        rawDeviceEventsCache.remove(event);
         rawDeviceEventsCache.add(event);
 
         // Don't fire event to often

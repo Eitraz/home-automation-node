@@ -21,7 +21,7 @@ public class RawDeviceHelper {
         return this;
     }
 
-    private RawDeviceEvent getEvent() {
+    public RawDeviceEvent getEvent() {
         if (event == null) {
             event = tellstick.getRawDeviceEvent(parameters);
         }
