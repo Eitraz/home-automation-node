@@ -28,7 +28,7 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
     private final Map<String, Serializable> deviceStatus;
 
     private final ITopic<RawDeviceEvent> rawDeviceEventsCacheTopic;
-    private final Set<RawDeviceEvent> rawDeviceEventsCache;
+    private final Set<RawDeviceEvent> rawDeviceEventsCache = new HashSet<>();
     private String rawDeviceEventsCacheListenerId;
 
     private final TimeoutHandler<String> rawEventTimeoutHandler = new TimeoutHandler<>(Duration.ONE_SECOND);
@@ -37,8 +37,6 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
     public TellstickAutomation(HazelcastInstance hazelcast) {
         deviceStatus = hazelcast.getMap("tellstick.device.status");
         rawDeviceEventsCacheTopic = hazelcast.getReliableTopic("tellstick.raw.events.cachePublisher");
-
-        rawDeviceEventsCache = new HashSet<>();
 
         tellstick = LifeCycleInstance.register(new TellstickCluster(hazelcast));
     }
@@ -88,6 +86,11 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
             return;
 
         deviceStatus.put(device, Boolean.TRUE);
+
+        // TODO: Remove
+        if (true)
+            return;
+
         try {
             tellstick.getProxiedDeviceByName(device, OnOffDevice.class).on();
         } catch (DeviceException e) {
@@ -101,6 +104,11 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
             return;
 
         deviceStatus.put(device, Boolean.FALSE);
+
+        // TODO: Remove
+        if (true)
+            return;
+
         try {
             tellstick.getProxiedDeviceByName(device, OnOffDevice.class).off();
         } catch (DeviceException e) {
@@ -117,27 +125,36 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
     }
 
     public RawDeviceEvent getRawDeviceEvent(Map<String, String> parameters) {
-//
-//        System.out.println("===== EVENTS =====");
-//        rawDeviceEventsCache.forEach(System.out::println);
-//        System.out.println("==================");
-//
-
-        Optional<RawDeviceEvent> first = rawDeviceEventsCache.stream()
-                .filter(e -> hasAllParameters(e, parameters))
-                .findFirst();
-        return first.orElse(null);
+        synchronized (rawDeviceEventsCache) {
+            Optional<RawDeviceEvent> first = rawDeviceEventsCache.stream()
+                    .filter(e -> hasAllParameters(e, parameters))
+                    .findFirst();
+            return first.orElse(null);
+        }
     }
 
     @Override
     public void onMessage(Message<RawDeviceEvent> message) {
         RawDeviceEvent event = message.getMessageObject();
-        rawDeviceEventsCache.remove(event);
-        rawDeviceEventsCache.add(event);
+
+        synchronized (rawDeviceEventsCache) {
+            rawDeviceEventsCache.remove(event);
+            rawDeviceEventsCache.add(event);
+        }
 
         // Don't fire event to often
         if (rawEventTimeoutHandler.isReady(event.toString())) {
             handleRawDeviceEvent(event);
+        }
+    }
+
+    public Serializable getDeviceStatus(String deviceName) {
+        return deviceStatus.get(deviceName);
+    }
+
+    public Set<RawDeviceEvent> getRawDeviceEventsCache() {
+        synchronized (rawDeviceEventsCache) {
+            return new HashSet<>(rawDeviceEventsCache);
         }
     }
 }

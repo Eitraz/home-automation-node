@@ -1,5 +1,6 @@
 package com.eitraz.automation;
 
+import com.eitraz.automation.api.TellstickResource;
 import com.eitraz.automation.configuration.AutomationConfiguration;
 import com.eitraz.automation.evaulation.Evaluator;
 import com.eitraz.automation.scripts.FileScriptLoader;
@@ -35,6 +36,9 @@ public class AutomationApplication extends Application<AutomationConfiguration> 
 
         // Evaluator
         evaluator = LifeCycleInstance.register(new Evaluator(hazelcast, tellstick));
+
+        // Resources
+        environment.jersey().register(new TellstickResource(tellstick));
 
         // Life cycle manager
         environment.lifecycle().manage(new Managed() {

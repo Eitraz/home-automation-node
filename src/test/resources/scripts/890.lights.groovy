@@ -134,6 +134,8 @@ when({ remoteUnit1ForcedOn }).then(
             ).run();
         }
 ).otherwise({
+    println ">> Sun is not set"
+
     tellstick.turnOff(OFFICE)
     tellstick.turnOff(LIVINGROOM)
     tellstick.turnOff(KITCHEN)

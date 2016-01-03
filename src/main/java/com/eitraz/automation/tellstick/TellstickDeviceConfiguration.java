@@ -5,7 +5,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import java.util.Map;
 
-public class JsonTellstickDevice {
+public class TellstickDeviceConfiguration {
     @NotEmpty
     private String name;
 
@@ -18,7 +18,7 @@ public class JsonTellstickDevice {
     @NotEmpty
     private Map<String, String> parameters;
 
-    public JsonTellstickDevice() {
+    public TellstickDeviceConfiguration() {
     }
 
     @JsonProperty
@@ -63,7 +63,7 @@ public class JsonTellstickDevice {
 
     @Override
     public String toString() {
-        return "JsonTellstickDevice{" +
+        return "TellstickDeviceConfiguration{" +
                 "name='" + name + '\'' +
                 ", model='" + model + '\'' +
                 ", protocol='" + protocol + '\'' +

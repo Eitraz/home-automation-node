@@ -17,7 +17,7 @@ public final class TellstickConfigurer {
 
         if (configuration.getDevices() != null) {
             try {
-                for (JsonTellstickDevice device : configuration.getDevices()) {
+                for (TellstickDeviceConfiguration device : configuration.getDevices()) {
                     localDeviceHandler.createDevice(device.getName(), device.getModel(), device.getProtocol(), device.getParameters());
                 }
             } catch (TellstickException | DeviceNotSupportedException e) {

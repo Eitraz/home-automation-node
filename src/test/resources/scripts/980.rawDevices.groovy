@@ -58,10 +58,10 @@ RawDeviceHelper upstairsTemperatureAndHumiditySensor = new RawDeviceHelper(tells
         .with(MODEL, "temperaturehumidity")
         .with(ID, "111");
 
-RawDeviceHelper livingTemperatureAndHumidityRoomSensor = new RawDeviceHelper(tellstick)
-        .with(PROTOCOL, "mandolyn")
-        .with(MODEL, "temperaturehumidity")
-        .with(ID, "112");
+//RawDeviceHelper livingRoomTemperatureAndHumidityRoomSensor = new RawDeviceHelper(tellstick)
+//        .with(PROTOCOL, "mandolyn")
+//        .with(MODEL, "temperaturehumidity")
+//        .with(ID, "112");
 
 RawDeviceHelper outsideTemperatureAndHumiditySensor = new RawDeviceHelper(tellstick)
         .with(PROTOCOL, "mandolyn")
@@ -73,12 +73,21 @@ RawDeviceHelper basementTemperatureAndHumiditySensor = new RawDeviceHelper(tells
         .with(MODEL, "temperaturehumidity")
         .with(ID, "114");
 
-RawDeviceHelper extraTemperatureAndHumiditySensor = new RawDeviceHelper(tellstick)
+RawDeviceHelper livingRoomTemperatureAndHumidityRoomSensor = new RawDeviceHelper(tellstick)
         .with(PROTOCOL, "fineoffset")
         .with(MODEL, "temperaturehumidity")
         .with(ID, "215");
 
+// ===== Brightness sensor =====
+
+RawDeviceHelper brightnessSensor = new RawDeviceHelper(tellstick)
+        .with(PROTOCOL, "arctech")
+        .with(MODEL, "selflearning")
+        .with(HOUSE, "8040222")
+        .with(UNIT, "10");
+
 // ===== Remotes =====
+
 RawDeviceHelper remoteUnit1 = new RawDeviceHelper(tellstick)
         .with(PROTOCOL, "arctech")
         .with(MODEL, "selflearning")

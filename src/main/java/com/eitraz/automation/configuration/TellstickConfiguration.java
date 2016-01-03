@@ -1,23 +1,23 @@
 package com.eitraz.automation.configuration;
 
-import com.eitraz.automation.tellstick.JsonTellstickDevice;
+import com.eitraz.automation.tellstick.TellstickDeviceConfiguration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
 public class TellstickConfiguration {
-    private List<JsonTellstickDevice> devices;
+    private List<TellstickDeviceConfiguration> devices;
 
     public TellstickConfiguration() {
     }
 
     @JsonProperty("devices")
-    public List<JsonTellstickDevice> getDevices() {
+    public List<TellstickDeviceConfiguration> getDevices() {
         return devices;
     }
 
     @JsonProperty("devices")
-    public void setDevices(List<JsonTellstickDevice> devices) {
+    public void setDevices(List<TellstickDeviceConfiguration> devices) {
         this.devices = devices;
     }
 }
