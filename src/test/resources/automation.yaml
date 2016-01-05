@@ -67,7 +67,7 @@ tellstick:
         house: 23837562
         unit: 1
 
-    - name: Kidsroom
+    - name: KidsRoom
       model: selflearning-switch
       protocol: arctech
       parameters:

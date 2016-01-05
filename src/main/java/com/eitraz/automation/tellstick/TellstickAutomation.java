@@ -94,10 +94,6 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
 
         deviceStatus.put(device, Boolean.TRUE);
 
-        // TODO: Remove
-        if (true)
-            return;
-
         try {
             tellstick.getProxiedDeviceByName(device, OnOffDevice.class).on();
         } catch (DeviceException e) {
@@ -111,10 +107,6 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
             return;
 
         deviceStatus.put(device, Boolean.FALSE);
-
-        // TODO: Remove
-        if (true)
-            return;
 
         try {
             tellstick.getProxiedDeviceByName(device, OnOffDevice.class).off();
