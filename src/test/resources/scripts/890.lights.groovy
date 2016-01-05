@@ -26,6 +26,18 @@ String KIDSROOM = "Kidsroom"
 String GUESTROOM = "Guestroom"
 String GARDEN = "Garden"
 
+boolean officeOn = false
+boolean livingRoomOn = false
+boolean kitchenOn = false
+boolean entranceOn = false
+boolean stairOn = false
+boolean hallwayOn = false
+boolean bedroomOn = false
+boolean playroomOn = false
+boolean kidsRoomOn = false
+boolean guestroomOn = false
+boolean gardenOn = false
+
 boolean remoteUnit1ForcedOn = remoteUnit1.isActive(THREE_HOURS) && remoteUnit1.is(METHOD, ON);
 boolean remoteUnit1ForcedOff = remoteUnit1.isActive(THREE_HOURS) && remoteUnit1.is(METHOD, OFF);
 
@@ -36,14 +48,14 @@ boolean remoteUnit2ForcedOff = remoteUnit2.isActive(THREE_HOURS) && remoteUnit2.
 when({ remoteUnit1ForcedOn }).then(
         {
             println ">> 1 forced ON"
-            tellstick.turnOn(OFFICE)
-            tellstick.turnOn(LIVINGROOM)
-            tellstick.turnOn(KITCHEN)
-            tellstick.turnOn(ENTRANCE)
-            tellstick.turnOn(STAIR)
-            tellstick.turnOn(PLAYROOM)
-            tellstick.turnOn(GUESTROOM)
-            tellstick.turnOn(GARDEN)
+            officeOn = true
+            livingRoomOn = true;
+            kitchenOn = true;
+            entranceOn = true;
+            stairOn = true;
+            playroomOn = true;
+            guestroomOn = true;
+            gardenOn = true;
         }
 
 // Remote forced off
@@ -52,14 +64,6 @@ when({ remoteUnit1ForcedOn }).then(
         .then(
         {
             println ">> 1 forced OFF"
-            tellstick.turnOff(OFFICE)
-            tellstick.turnOff(LIVINGROOM)
-            tellstick.turnOff(KITCHEN)
-            tellstick.turnOff(ENTRANCE)
-            tellstick.turnOff(STAIR)
-            tellstick.turnOff(PLAYROOM)
-            tellstick.turnOff(GUESTROOM)
-            tellstick.turnOff(GARDEN)
         }
 
 // Sun is set
@@ -77,12 +81,12 @@ when({ remoteUnit1ForcedOn }).then(
             }).then({
                 println ">> Right time and motion"
 
-                tellstick.turnOn(OFFICE)
-                tellstick.turnOn(LIVINGROOM)
-                tellstick.turnOn(KITCHEN)
-                tellstick.turnOn(ENTRANCE)
-                tellstick.turnOn(GUESTROOM)
-                tellstick.turnOn(GARDEN)
+                officeOn = true;
+                livingRoomOn = true;
+                kitchenOn = true;
+                entranceOn = true;
+                guestroomOn = true;
+                gardenOn = true;
             }
             ).otherwise({
                 println ">> NOT Right time or no motion"
@@ -91,19 +95,10 @@ when({ remoteUnit1ForcedOn }).then(
                 when({
                     Time.between("17:00", "22:00") || Time.between("07:00", "08:00")
                 }).then({
-                    tellstick.turnOn(LIVINGROOM)
-                    tellstick.turnOn(ENTRANCE)
-                    tellstick.turnOn(GARDEN)
-                }).otherwise({
-                    tellstick.turnOff(LIVINGROOM)
-                    tellstick.turnOff(ENTRANCE)
-                    tellstick.turnOff(GARDEN)
+                    livingRoomOn = true;
+                    entranceOn = true;
+                    gardenOn = true;
                 }).run();
-
-                tellstick.turnOff(OFFICE)
-                tellstick.turnOff(KITCHEN)
-                tellstick.turnOff(ENTRANCE)
-                tellstick.turnOff(GUESTROOM)
             }
             ).run();
 
@@ -113,10 +108,7 @@ when({ remoteUnit1ForcedOn }).then(
                 Time.between("05:30", "23:59") && anyRawDevicesIsActive(THIRTY_MINUTES,
                         entranceMotionSensor, kitchenMotionSensor)
             }).then({
-                tellstick.turnOn(PLAYROOM)
-            }
-            ).otherwise({
-                tellstick.turnOff(PLAYROOM)
+                playroomOn = true;
             }
             ).run();
 
@@ -126,32 +118,18 @@ when({ remoteUnit1ForcedOn }).then(
                 Time.between("05:30", "23:59") && anyRawDevicesIsActive(THIRTY_MINUTES,
                         entranceMotionSensor, upstairsHallwayMotionSensor, upstairsMotionSensor)
             }).then({
-                tellstick.turnOn(STAIR)
-            }
-            ).otherwise({
-                tellstick.turnOff(STAIR)
+                stairOn = true;
             }
             ).run();
         }
-).otherwise({
-    println ">> Sun is not set"
-
-    tellstick.turnOff(OFFICE)
-    tellstick.turnOff(LIVINGROOM)
-    tellstick.turnOff(KITCHEN)
-    tellstick.turnOff(ENTRANCE)
-    tellstick.turnOff(STAIR)
-    tellstick.turnOff(PLAYROOM)
-    tellstick.turnOff(GUESTROOM)
-    tellstick.turnOff(GARDEN)
-}).run();
+).run();
 
 // Remote forced on
 when({ remoteUnit2ForcedOn }).then(
         {
-            tellstick.turnOn(HALLWAY)
-            tellstick.turnOn(BEDROOM)
-            // tellstick.turnOff(KIDSROOM) - don't use force on, don't want to wake the kids
+            hallwayOn = true;
+            bedroomOn = true;
+            // kidsRoomOn = true;
         }
 
 // Remote forced off
@@ -159,9 +137,7 @@ when({ remoteUnit2ForcedOn }).then(
         .when({ remoteUnit2ForcedOff })
         .then(
         {
-            tellstick.turnOff(HALLWAY)
-            tellstick.turnOff(BEDROOM)
-            tellstick.turnOff(KIDSROOM)
+
         }
 
 // Sun is set
@@ -175,10 +151,7 @@ when({ remoteUnit2ForcedOn }).then(
                 Time.between("06:30", "23:59") && anyRawDevicesIsActive(THIRTY_MINUTES,
                         upstairsHallwayMotionSensor, upstairsMotionSensor)
             }).then({
-                tellstick.turnOn(HALLWAY)
-            }
-            ).otherwise({
-                tellstick.turnOff(HALLWAY)
+                hallwayOn = true;
             }
             ).run();
 
@@ -188,10 +161,7 @@ when({ remoteUnit2ForcedOn }).then(
                 Time.between("13:00", "18:30") && anyRawDevicesIsActive(THIRTY_MINUTES,
                         upstairsHallwayMotionSensor, upstairsMotionSensor)
             }).then({
-                tellstick.turnOn(KIDSROOM)
-            }
-            ).otherwise({
-                tellstick.turnOff(KIDSROOM)
+                kidsRoomOn = true;
             }
             ).run();
 
@@ -201,15 +171,8 @@ when({ remoteUnit2ForcedOn }).then(
                 Time.between("08:00", "22:00") && anyRawDevicesIsActive(THIRTY_MINUTES,
                         upstairsHallwayMotionSensor, upstairsMotionSensor)
             }).then({
-                tellstick.turnOn(BEDROOM)
-            }
-            ).otherwise({
-                tellstick.turnOff(BEDROOM)
+                bedroomOn = true;
             }
             ).run();
         }
-).otherwise({
-    tellstick.turnOff(HALLWAY)
-    tellstick.turnOff(BEDROOM)
-    tellstick.turnOff(KIDSROOM)
-}).run();
+).run();

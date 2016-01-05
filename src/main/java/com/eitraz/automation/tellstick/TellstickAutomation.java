@@ -80,6 +80,13 @@ public class TellstickAutomation implements Startable, Stopable, RawDeviceEventL
         rawDeviceEventListeners.forEach(l -> l.rawDeviceEvent(event));
     }
 
+    public void turnOn(String device, boolean turnOn) {
+        if (turnOn)
+            turnOn(device);
+        else
+            turnOff(device);
+    }
+
     public void turnOn(String device) {
         // Already on
         if (Boolean.TRUE.equals(deviceStatus.get(device)))
