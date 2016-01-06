@@ -1,6 +1,5 @@
 package com.eitraz.automation.scripts;
 
-import com.eitraz.automation.rule.When;
 import com.eitraz.automation.tellstick.TellstickAutomation;
 import com.eitraz.library.lifecycle.Startable;
 import com.eitraz.library.lifecycle.Stopable;
@@ -12,10 +11,8 @@ import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.MapClearedListener;
 import groovy.lang.Binding;
-import groovy.lang.GroovyRuntimeException;
 import groovy.lang.GroovyShell;
 import org.apache.log4j.Logger;
-import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.io.*;

@@ -13,7 +13,11 @@ public class AutomationApplicationTest {
 
     @Test
     public void testTest() throws Exception {
-        Thread.sleep(60000 * 1);
+//        Thread.sleep(60000 * 60 * 2);
+
+        while (!RULE.getEnvironment().getApplicationContext().isStopped()) {
+            Thread.sleep(1000);
+        }
 
 //        System.out.println("================================================================================");
 //        System.out.println("Tellstick: " + RULE.getConfiguration().getTellstick());

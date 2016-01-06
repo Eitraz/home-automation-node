@@ -25,15 +25,14 @@ boolean kidsRoomOn = false
 boolean guestroomOn = false
 boolean gardenOn = false
 
-boolean remoteUnit1ForcedOn = remoteUnit1.isActive(THREE_HOURS) && remoteUnit1.is(METHOD, ON);
-boolean remoteUnit1ForcedOff = remoteUnit1.isActive(THREE_HOURS) && remoteUnit1.is(METHOD, OFF);
+boolean remoteUnit1ForcedOn = remoteUnit1.isActive(FOUR_HOURS) && remoteUnit1.is(METHOD, ON);
+boolean remoteUnit1ForcedOff = remoteUnit1.isActive(FOUR_HOURS) && remoteUnit1.is(METHOD, OFF);
 
-boolean remoteUnit2ForcedOn = remoteUnit2.isActive(THREE_HOURS) && remoteUnit2.is(METHOD, ON);
-boolean remoteUnit2ForcedOff = remoteUnit2.isActive(THREE_HOURS) && remoteUnit2.is(METHOD, OFF);
+boolean remoteUnit2ForcedOn = remoteUnit2.isActive(FOUR_HOURS) && remoteUnit2.is(METHOD, ON);
+boolean remoteUnit2ForcedOff = remoteUnit2.isActive(FOUR_HOURS) && remoteUnit2.is(METHOD, OFF);
 
 // Remote forced on
 if (remoteUnit1ForcedOn) {
-    println ">> 1 forced ON"
     officeOn = true
     livingRoomOn = true;
     kitchenOn = true;
@@ -45,18 +44,13 @@ if (remoteUnit1ForcedOn) {
 }
 // Remote forced off
 else if (remoteUnit1ForcedOff) {
-    println ">> 1 forced OFF"
     // off
 }
 // Sun is set
 else if (sunIsSet) {
-    println "<< Sun is set"
-
     // Living area
     if (Time.between("05:30", "23:59") && anyRawDevicesIsActive(THIRTY_MINUTES,
             livingRoomMotionSensor, entranceMotionSensor, kitchenMotionSensor)) {
-        println ">> Right time and motion"
-
         officeOn = true;
         livingRoomOn = true;
         kitchenOn = true;

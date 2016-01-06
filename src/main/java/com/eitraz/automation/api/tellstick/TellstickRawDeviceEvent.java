@@ -1,6 +1,8 @@
 package com.eitraz.automation.api.tellstick;
 
+import com.eitraz.automation.api.JsonDateSerializer;
 import com.eitraz.tellstick.core.rawdevice.events.RawDeviceEvent;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Date;
 import java.util.Map;
@@ -14,6 +16,7 @@ public class TellstickRawDeviceEvent {
         this.parameters = event.getParameters();
     }
 
+    @JsonSerialize(using = JsonDateSerializer.class)
     public Date getTime() {
         return time;
     }

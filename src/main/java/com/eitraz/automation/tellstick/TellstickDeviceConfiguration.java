@@ -3,9 +3,10 @@ package com.eitraz.automation.tellstick;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.validator.constraints.NotEmpty;
 
+import java.io.Serializable;
 import java.util.Map;
 
-public class TellstickDeviceConfiguration {
+public class TellstickDeviceConfiguration implements Serializable {
     @NotEmpty
     private String name;
 

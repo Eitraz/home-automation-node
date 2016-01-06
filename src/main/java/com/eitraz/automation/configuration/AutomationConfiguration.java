@@ -7,10 +7,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 public class AutomationConfiguration extends Configuration {
-    @Valid
     private TellstickConfiguration tellstick;
 
-    @Valid
     private ScriptsConfiguration scripts;
 
     @NotNull

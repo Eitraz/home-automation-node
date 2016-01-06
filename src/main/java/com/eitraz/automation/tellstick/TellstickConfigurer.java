@@ -1,28 +1,22 @@
 package com.eitraz.automation.tellstick;
 
 import com.eitraz.automation.configuration.TellstickConfiguration;
-import com.eitraz.tellstick.core.TellstickException;
-import com.eitraz.tellstick.core.cluster.TellstickCluster;
-import com.eitraz.tellstick.core.device.DeviceHandler;
-import com.eitraz.tellstick.core.device.DeviceNotSupportedException;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IList;
+import com.hazelcast.core.ITopic;
 
 public final class TellstickConfigurer {
     private TellstickConfigurer() {
     }
 
-    public static void setup(TellstickCluster tellstick, TellstickConfiguration configuration) {
-        // Remove all local devices
-        DeviceHandler localDeviceHandler = tellstick.getTellstick().getDeviceHandler();
-        localDeviceHandler.getDevices().forEach(localDeviceHandler::removeDevice);
+    public static void setup(HazelcastInstance hazelcast, TellstickConfiguration configuration) {
+        ITopic<String> devicesUpdatedTopic = hazelcast.getReliableTopic(TellstickAutomation.HAZELCAST_TELLSTICK_DEVICES_CONFIGURATION_TOPIC);
+        IList<TellstickDeviceConfiguration> devicesConfiguration = hazelcast.getList(TellstickAutomation.HAZELCAST_TELLSTICK_DEVICES_CONFIGURATION);
 
-        if (configuration.getDevices() != null) {
-            try {
-                for (TellstickDeviceConfiguration device : configuration.getDevices()) {
-                    localDeviceHandler.createDevice(device.getName(), device.getModel(), device.getProtocol(), device.getParameters());
-                }
-            } catch (TellstickException | DeviceNotSupportedException e) {
-                throw new RuntimeException("Failed to create local Tellstick device", e);
-            }
+        if (configuration != null && configuration.getDevices() != null) {
+            devicesConfiguration.clear();
+            configuration.getDevices().forEach(devicesConfiguration::add);
+            devicesUpdatedTopic.publish("reload devices");
         }
     }
 }
